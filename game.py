@@ -4,20 +4,67 @@ import math
 import copy
 import time
 
+pygame.font.init()
+
 WHITE = (255,255,255)
 BLACK = (0,0,0)
+GREEN = (0, 255, 0)
 
 AI = "O"
 ME = "X"
 
-def minimax(board, maximizing):
+FONT = pygame.font.Font("assets/font.ttf", 70)
+
+def start_button(window, text, height, me, ai, nickname, border=0):
+    render = FONT.render(text, True, BLACK)
+    font_rect = render.get_rect()
+    middle = (font_rect[0] + font_rect[2])//2
+    pos = (300-middle-border, height, font_rect[2]+2*border, font_rect[3]+border)
+    pygame.draw.rect(window, GREEN, pos)
+    window.blit(render, (300-middle, height))
+
+    if pygame.mouse.get_pressed() == (1,0,0):
+        mouse_pos = pygame.mouse.get_pos()
+        if mouse_pos[0] in range(pos[0], pos[0]+pos[2]) and mouse_pos[1] in range(pos[1], pos[1]+pos[3]):
+            game(ai, me, nickname)
+            return False
+
+    return True
+            
+
+def end_window(clock, winner, me, ai, nickname):
+    window = pygame.display.set_mode([600,600])
+    running = True
+    while running:
+        
+        window.fill(BLACK)
+        running = start_button(window, "JOGAR NOVAMENTE", 350, me, ai, nickname, border=10)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        
+        text = "DEU VELHA" if not winner else f"{winner} GANHOU"
+        render = FONT.render(text, True, WHITE)
+        font_rect = render.get_rect()
+        middle = (font_rect[0]+font_rect[2])//2
+        pos = (300-middle, 200)
+        
+
+        window.blit(render, pos)
+        clock.tick(60)    
+        pygame.display.flip()
+
+
+def minimax(board, maximizing, ai, me):
     win = has_winner(board)
 
     if has_tie(board):
         return 0
-    elif win == AI:
+    elif win == ai:
         return 1
-    elif win == ME:
+    elif win == me:
         return -1
 
     if maximizing:
@@ -26,8 +73,8 @@ def minimax(board, maximizing):
             for j in range(3):
                 if board[i][j] == " ":
                     tab = copy.deepcopy(board)
-                    tab[i][j] = AI 
-                    score = minimax(tab, False)
+                    tab[i][j] = ai 
+                    score = minimax(tab, False, ai, me)
                     best_score = max((score, best_score))
         return best_score
 
@@ -37,21 +84,21 @@ def minimax(board, maximizing):
             for j in range(3):
                 if board[i][j] == " ":
                     tab = copy.deepcopy(board)
-                    tab[i][j] = ME
-                    score = minimax(tab, True)
+                    tab[i][j] = me
+                    score = minimax(tab, True, ai, me)
                     best_score = min((score, best_score))
         return best_score
 
 
-def get_move(board):
+def get_move(board, ai, me):
     best_score = -(math.inf)
     best_move = None
     for i in range(3):
         for j in range(3):
             if board[i][j] == " ":
                 tab = copy.deepcopy(board)
-                tab[i][j] = AI
-                score = minimax(tab, False)
+                tab[i][j] = ai
+                score = minimax(tab, False, ai, me)
                 if score > best_score:
                     best_score = score
                     best_move = (i,j)
@@ -169,51 +216,71 @@ def print_table(table):
         print(" ".join(table[i]))
     print("- - -")
 
-pygame.init()
+def game(ai, me, nickname):
+    window = pygame.display.set_mode([600,600])
+    clock = pygame.time.Clock()
 
-window = pygame.display.set_mode([600,600])
-clock = pygame.time.Clock()
+    table = [
+        [" "," "," "],
+        [" "," "," "],
+        [" "," "," "],
+    ]
 
-table = [
-    [" "," "," "],
-    [" "," "," "],
-    [" "," "," "],
-]
+    spaces = get_spaces()
 
-spaces = get_spaces()
+    running = True
+    turn = random.choice([me, ai])
+    first = True
+    closed = False
 
-running = True
-turn = random.choice([ME, AI])
-first = True
-while running:
-       
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    while running:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                closed = True
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    running = False
+                    closed = True
+        
+        window.fill(BLACK)
+        
+        draw_grid(window)
+
+        if pygame.mouse.get_pressed() == (1,0,0):  
+            if turn == me:  
+                cel = get_cel(spaces, pygame.mouse.get_pos())
+                if table[cel[0]][cel[1]] == " ":
+                    table[int(cel[0])][int(cel[1])] = me
+                    turn = ai
+                    first = False
+
+        elif turn == ai:
+            cel = random_move(table) if first else get_move(copy.deepcopy(table), ai, me)
+            if table[cel[0]][cel[1]] == " ":        
+                table[cel[0]][cel[1]] = ai
+                turn = me
+                first = False
+
+        draw_marked(table, spaces, window)
+        print_table(table)
+
+        if has_winner(table) != False or has_tie(table):
             running = False
-    
-    window.fill(BLACK)
-    
-    draw_grid(window)
 
-    if pygame.mouse.get_pressed() == (1,0,0):  
-        if turn == ME:  
-            cel = get_cel(spaces, pygame.mouse.get_pos())
-            table[int(cel[0])][int(cel[1])] = ME
-            turn = AI
-            first = False
+        clock.tick(60)    
+        pygame.display.flip()
 
-    elif turn == AI:
-        cel = random_move(table) if first else get_move(copy.deepcopy(table))
-        table[cel[0]][cel[1]] = AI
-        turn = ME
-        first = False
+        if running == False:
+            time.sleep(1)
 
-    draw_marked(table, spaces, window)
-    print_table(table)
+    if not closed:
+        winner = ""
+        if has_winner(table) == ai:
+            winner = "COMPUTER"
+        elif has_winner(table) == me:
+            winner = nickname
 
-    if has_winner(table) != False or has_tie(table):
-        running = False
-        print(has_winner(table))
-
-    clock.tick(60)    
-    pygame.display.flip()
+        end_window(clock, winner, me, ai, nickname)
