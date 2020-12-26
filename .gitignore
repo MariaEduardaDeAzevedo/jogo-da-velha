@@ -139,4 +139,5 @@ cython_debug/
 
 # Celare
 .tokens.json
-        
+
+setup.py
