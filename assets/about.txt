@@ -1,0 +1,19 @@
+Olá! Primeiramente, muito obrigada por jogar! 
+
+Esse mini-game foi desenvolvido de uma forma muito expontânea e aleatória por
+Maria Eduarda de Azevedo, estudante de Ciência da Computação na Universidade
+Federal de Campina Grande - UFCG, utilizando Python3 e algumas bibliotecas,
+como Pygame, para a GUI do jogo e Tkinter, para essa janelinha que você está 
+agora.
+
+E como que o computador consegue jogar com você? Bem, por trás de tudo isso
+existe a implementação de um algoritmo chamado de "minimax", que faz com que
+o seu computador saiba fazer ótimas decisões durante o jogo, tornando até um
+pouco difícil a possibilidade de conseguir vencê-lo. 
+
+Você pode usar esse mini-game não apenas para se divertir, mas também para
+aprender estratégias! Observar como o computador joga e como prevê boas jogadas
+pode ajudar você a jogar muito bem contra seus amigues.
+
+Caso esteja interessade em dar uma olhadinha no código, segue o link do repositório
+no GitHub abaixo!

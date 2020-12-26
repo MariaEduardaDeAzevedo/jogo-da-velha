@@ -1,19 +1,81 @@
+from os import link
 import pygame
 import random
 import math
 import copy
 import time
+import tkinter as tk
+import webbrowser
 
 pygame.font.init()
+pygame.mixer.init()
 
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 GREEN = (0, 255, 0)
-
-AI = "O"
-ME = "X"
+BLUE = (0,0,255)
 
 FONT = pygame.font.Font("assets/font.ttf", 70)
+FONT_MIN = pygame.font.Font("assets/font.ttf", 30)
+
+def callback(url):
+    webbrowser.open_new(url)
+
+def center_pos(rect, height):
+    return (300 - ((rect[0] + rect[2])//2), height)
+
+def play_sound(sound, repeat=False):
+    pygame.mixer.music.load(f"assets/audios/{sound}.ogg")
+    if repeat:
+        pygame.mixer.music.play(loops=-1)
+    else:
+        pygame.mixer.music.play()
+
+def about():
+    window = tk.Tk()
+    window.geometry("600x600")
+
+    file = open("assets/about.txt", "r")
+    text = file.read()
+
+    label = tk.Label(text=text)
+    label.pack()
+    
+    repo = tk.Label(fg="blue", text="Código fonte")
+    github = tk.Label(fg="blue", text="GitHub")
+    linkedin = tk.Label(fg="blue", text="Linkedin")
+    twitter = tk.Label(fg="blue", text="Twitter")
+
+    repo.pack()
+    github.pack()
+    linkedin.pack()
+    twitter.pack()
+
+    repo.bind("<Button-1>", lambda e: callback("https://github.com/MariaEduardaDeAzevedo/jogo-da-velha"))
+    github.bind("<Button-1>", lambda e: callback("https://github.com/MariaEduardaDeAzevedo/"))
+    twitter.bind("<Button-1>", lambda e: callback("https://twitter.com/ddt_azevedo"))
+    linkedin.bind("<Button-1>", lambda e: callback("https://www.linkedin.com/in/mariaeduardadeazevedo/"))
+
+    window.mainloop()
+    file.close()
+
+
+def about_button(window, height, border=0):
+    render = FONT.render("SOBRE", True, BLACK)
+    font_rect = render.get_rect()
+    middle = (font_rect[0] + font_rect[2])//2
+    pos = (300-middle-border, height, font_rect[2]+2*border, font_rect[3]+border)
+    pygame.draw.rect(window, BLUE, pos)
+    window.blit(render, (300-middle, height))
+
+    if pygame.mouse.get_pressed() == (1,0,0):
+        mouse_pos = pygame.mouse.get_pos()
+        if mouse_pos[0] in range(pos[0], pos[0]+pos[2]) and mouse_pos[1] in range(pos[1], pos[1]+pos[3]):
+            play_sound("open_001")
+            about()
+            return False
+
+    return True
 
 def start_button(window, text, height, me, ai, nickname, border=0):
     render = FONT.render(text, True, BLACK)
@@ -26,6 +88,7 @@ def start_button(window, text, height, me, ai, nickname, border=0):
     if pygame.mouse.get_pressed() == (1,0,0):
         mouse_pos = pygame.mouse.get_pos()
         if mouse_pos[0] in range(pos[0], pos[0]+pos[2]) and mouse_pos[1] in range(pos[1], pos[1]+pos[3]):
+            play_sound("open_001")
             game(ai, me, nickname)
             return False
 
@@ -35,8 +98,15 @@ def start_button(window, text, height, me, ai, nickname, border=0):
 def end_window(clock, winner, me, ai, nickname):
     window = pygame.display.set_mode([600,600])
     running = True
-    while running:
-        
+    
+    if winner == me:
+        play_sound("winner")
+    elif winner == ai:
+        play_sound("looser")
+    else:
+        play_sound("tie")
+
+    while running:    
         window.fill(BLACK)
         running = start_button(window, "JOGAR NOVAMENTE", 350, me, ai, nickname, border=10)
         
@@ -256,6 +326,7 @@ def game(ai, me, nickname):
                     table[int(cel[0])][int(cel[1])] = me
                     turn = ai
                     first = False
+                    play_sound("confirmation_001")
 
         elif turn == ai:
             cel = random_move(table) if first else get_move(copy.deepcopy(table), ai, me)
@@ -263,6 +334,7 @@ def game(ai, me, nickname):
                 table[cel[0]][cel[1]] = ai
                 turn = me
                 first = False
+                play_sound("select_001")
 
         draw_marked(table, spaces, window)
         print_table(table)
