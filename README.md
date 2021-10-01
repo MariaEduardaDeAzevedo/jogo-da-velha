@@ -46,3 +46,11 @@ Quer contribuir? Seguem algumas ideias de como fazê-lo:
 1. Dê fork nesse repositório e altere o código com sua ideia ou com uma das issues desse projeto! Depois faça uma pull request, com certeza sua ideia será vista!
 
 2. Envie uma issue, assim outras pessoas podem ver e contribuir com sua ideia!
+
+## Possiveis erros: [Linux]
+
+1. Caso tenha ocorra o erro, ```libSDL2_mixer-2.0.so.0```, será necessario adicionar o pacote, ```python3-sdl2```:
+
+```npm
+sudo apt-get install python3-sdl2
+```
